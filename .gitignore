@@ -1,0 +1,14 @@
+.DS_Store
+*.DS_Store
+package-lock.json
+node_modules/*
+*.iml
+.vscode/*
+*.ini
+nohup.out
+*.tar
+*.zip
+*.gradle
+*.log
+*.err
+.sass-cache

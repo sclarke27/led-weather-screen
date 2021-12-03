@@ -1,0 +1,17 @@
+{
+  "name": "led-screen-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "canvas": "^2.8.0",
+    "easybotics-rpi-rgb-led-matrix": "^0.4.1",
+    "request": "^2.81.0"
+  }
+}
