@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const request = require('request');
 const moonPhase = require('./moonphase');
-
+const stationId = 9410230
 
 
 function fontFile (name) {
@@ -28,25 +28,25 @@ class Main {
             const now = new Date();
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=NOS.COOPS.TAC.WL&begin_date=${start}&end_date=${end}&datum=MLLW&station=9410230&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=NOS.COOPS.TAC.WL&begin_date=${start}&end_date=${end}&datum=MLLW&station=${stationId}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
         };
         this.airTempDataUrl = () => {
             const now = new Date();
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=air_temperature&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=9410230&time_zone=lst_ldt&units=english&interval=h&format=json`;
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=air_temperature&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.waterTempDataUrl = () => {
             const now = new Date();
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=water_temperature&application=NOS.COOPS.TAC.PHYSOCEAN&begin_date=${start}&end_date=${end}&station=9410230&time_zone=lst_ldt&units=english&interval=h&format=json`;
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=water_temperature&application=NOS.COOPS.TAC.PHYSOCEAN&begin_date=${start}&end_date=${end}&station=${stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.windDataUrl = () => {
             const now = new Date();
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=wind&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=9410230&time_zone=lst_ldt&units=english&interval=h&format=json`;
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=wind&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.mainLoopTimeout = null;
         this.matrix = null;
@@ -106,7 +106,7 @@ class Main {
         Canvas.loadImage(`led-background.jpg`).then((image) => {
             this.backgroundImage = image;
             this.render();
-            this.mainLoopTimeout = setInterval(this.loadData.bind(this), 1000 * 60 * 5);
+            this.mainLoopTimeout = setInterval(this.loadData.bind(this), 1000 * 60 * 15);
     
         });
         
@@ -124,26 +124,45 @@ class Main {
 
         request(this.tideDataUrl(), { json: true }, (err, res, body) => {
             if (err) { return console.log(err); }
-            this.tideData = body.predictions;
-            this.render();
+            
+            if(body.predictions) {
+                this.tideData = body.predictions;
+                this.render();
+            } else {
+                console.info('tide data error', body, this.tideDataUrl());
+            }
         });  
 
         request(this.airTempDataUrl(), { json: true }, (err, res, body) => {
             if (err) { return console.log(err); }
-            this.airTempData = body.data;
-            this.render();
+            
+            if(body.data) {
+                this.airTempData = body.data;
+                this.render();
+            } else {
+                console.info('air data error', body, this.airTempDataUrl());
+            }
         });  
 
         request(this.waterTempDataUrl(), { json: true }, (err, res, body) => {
             if (err) { return console.log(err); }
-            this.waterTempData = body.data;
-            this.render();
+            if(body.data) {
+                this.waterTempData = body.data;
+                this.render();
+            } else {
+                console.info('water data error', body, this.waterTempDataUrl());
+            }
         });  
 
         request(this.windDataUrl(), { json: true }, (err, res, body) => {
             if (err) { return console.log(err); }
-            this.windData = body.data;
-            this.render();
+            // console.info('wind', body)
+            if(body.data) {
+                this.windData = body.data;
+                this.render();
+            } else {
+                console.info('wind data error', body, this.windDataUrl());
+            }
         });  
         
     }
@@ -189,6 +208,8 @@ class Main {
                     
                 }
             }
+        } else {
+            this.canvasContext.fillText(`No tide data`, 2, ((2+1)*10+9));
         }
         this.canvasContext.fillStyle = "#ACC196";
         this.canvasContext.font = 'normal 8px lato';
