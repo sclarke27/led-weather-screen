@@ -4,8 +4,11 @@ const fs = require('fs')
 const path = require('path')
 const request = require('request');
 const moonPhase = require('./moonphase');
-const stationId = 9410230
 
+// config vars
+const stationId = 9410230
+const sleepHourStart = 7;
+const sleepHourEnd = 22;
 
 function fontFile (name) {
     return path.join(__dirname, '/fonts/', name)
@@ -61,7 +64,7 @@ class Main {
             "panelType": "rpi-rgb-led-matrix",
             "chained": 1,
             "parallel": 2,
-            "brightness": 100,
+            "brightness": 5,
             "hardwareMapping": "adafruit-hat-pwm",
             "rgbSequence": "RGB",
             "cmdLineArgs": ["--led-multiplexing=0","--led-row-addr-type=4"]
@@ -106,7 +109,7 @@ class Main {
         Canvas.loadImage(`led-background.jpg`).then((image) => {
             this.backgroundImage = image;
             this.render();
-            this.mainLoopTimeout = setInterval(this.loadData.bind(this), 1000 * 60 * 15);
+            this.mainLoopTimeout = setInterval(this.loadData.bind(this), 1000 * 60 * 1);
     
         });
         
@@ -170,6 +173,12 @@ class Main {
     render() {
 
         const now = new Date();
+        // console.info(now.getHours(), now.getHours() >= sleepHourStart && now.getHours() <= sleepHourEnd);
+        if(now.getHours() >= sleepHourStart && now.getHours() <= sleepHourEnd) {
+            this.matrix.brightness(100);
+        } else {
+            this.matrix.brightness(5);
+        }
 
         //clear canvas
         this.canvasContext.fillStyle = "#000";
