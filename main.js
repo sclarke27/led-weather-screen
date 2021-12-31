@@ -5,17 +5,13 @@ const path = require('path')
 const request = require('request');
 const moonPhase = require('./moonphase');
 
-// config vars
-const stationId = 9410230
-const sleepHourStart = 7;
-const sleepHourEnd = 22;
-
 function fontFile (name) {
     return path.join(__dirname, '/fonts/', name)
 }
 
 Canvas.registerFont(fontFile('Lato-Regular.ttf'), { family: 'lato' })
 Canvas.registerFont(fontFile('RobotoMono-Light.ttf'), { family: 'Roboto'})
+Canvas.registerFont(fontFile('Montserrat-SemiBoldItalic.ttf'), { family: 'Montserrat'})
 
 function padNumber(number) {
     return number.toString().padStart(2, '0');
@@ -25,42 +21,48 @@ function formatHours(hour) {
     return (hour > 12) ? hour -12 : hour;
 }
 
+function addDays(date, days) {
+    var result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
 class Main {
     constructor() {
         this.tideDataUrl = () => { 
             const now = new Date();
+            const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=NOS.COOPS.TAC.WL&begin_date=${start}&end_date=${end}&datum=MLLW&station=${stationId}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=NOS.COOPS.TAC.WL&begin_date=${start}&end_date=${end}&datum=MLLW&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
         };
         this.airTempDataUrl = () => {
             const now = new Date();
+            const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=air_temperature&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=air_temperature&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.waterTempDataUrl = () => {
             const now = new Date();
+            const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=water_temperature&application=NOS.COOPS.TAC.PHYSOCEAN&begin_date=${start}&end_date=${end}&station=${stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=water_temperature&application=NOS.COOPS.TAC.PHYSOCEAN&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.windDataUrl = () => {
             const now = new Date();
+            const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate()+1);
-            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=wind&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=wind&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.mainLoopTimeout = null;
         this.matrix = null;
         this.frameWidth = 128;
         this.config = {
-            "name": "Big Panel",
-            "id": "big",
             "width": 64,
             "height": 64,
-            "swimAddress": "scottclarke.info",
-            "swimPort": "9001",
             "panelType": "rpi-rgb-led-matrix",
             "chained": 1,
             "parallel": 2,
@@ -69,14 +71,7 @@ class Main {
             "rgbSequence": "RGB",
             "cmdLineArgs": ["--led-multiplexing=0","--led-row-addr-type=4"]
         }
-        this.ledPixels = [
-            [255,255,0],
-            [255,255,0],
-            [255,255,255],
-            [255,0,0],
-            [0,255,0],
-            [0,0,255]
-        ];
+        this.ledPixels = [];
         this.canvas = null;
         this.canvasContext = null;
         this.lingrad = null;
@@ -87,6 +82,32 @@ class Main {
         this.waterTempData = [];
         this.windData = [];
         this.currentTick = 0;
+        this.stationName = "Loading";
+
+        this.stationIdList = [9410230, 9410170, 9410840, 9411340, 9410230, 9413450, 9414290, 1612340, 9410230, 1612480, 9497645, 9455920]
+        this.stationIdIndex = 0;
+        this.stationId = 0;
+
+        this.showDebug = false;
+        this.sleepHourStart = 7;
+        this.sleepHourEnd = 20;
+        
+
+
+        this.console = {
+            info(msg) {
+                if(this.showDebug) {
+                    console.info(msg);
+                }
+            },
+            error(msg) {
+                if(this.showDebug) {
+                    console.error(msg);
+                }
+            }
+        }
+    
+        
     }
 
     start() {
@@ -106,10 +127,10 @@ class Main {
 
         this.loadData();
 
-        Canvas.loadImage(`led-background.jpg`).then((image) => {
+        Canvas.loadImage(`led-background-no-title.jpg`).then((image) => {
             this.backgroundImage = image;
             this.render();
-            this.mainLoopTimeout = setInterval(this.loadData.bind(this), 1000 * 60 * 1);
+            this.mainLoopTimeout = setInterval(this.loadData.bind(this), 1000 * 60 * 0.5);
     
         });
         
@@ -118,6 +139,18 @@ class Main {
 
 
     loadData() {
+        this.stationId = this.stationIdList[this.stationIdIndex];
+        this.stationIdIndex++;
+        if(this.stationIdIndex >= this.stationIdList.length) {
+            this.stationIdIndex = 0;
+        }
+
+        this.tideData = [];
+        this.airTempData = null;
+        this.waterTempData = null;
+        this.windData = null;
+        this.stationName = "Loading...";
+
         const currDate = new Date();
         const tempMoonImg = moonPhase.moonPhase()(currDate.getFullYear(), currDate.getMonth()+1, currDate.getDate()).image;
         Canvas.loadImage(tempMoonImg).then((image) => {
@@ -126,45 +159,56 @@ class Main {
         })
 
         request(this.tideDataUrl(), { json: true }, (err, res, body) => {
-            if (err) { return console.log(err); }
-            
+            this.console.info('tide url', this.tideDataUrl());
+            if (err) { return this.console.error(err); }
+            this.console.info('tide', body);
             if(body.predictions) {
                 this.tideData = body.predictions;
                 this.render();
             } else {
-                console.info('tide data error', body, this.tideDataUrl());
+                this.console.info('tide data error', body, this.tideDataUrl());
             }
         });  
 
         request(this.airTempDataUrl(), { json: true }, (err, res, body) => {
-            if (err) { return console.log(err); }
-            
+            if (err) { return this.console.error(err); }
+            this.console.info('air', body)
             if(body.data) {
                 this.airTempData = body.data;
+                const metaData = body.metadata;
+                if(metaData && metaData.name) {
+                    this.stationName = metaData.name;
+                }                
                 this.render();
             } else {
-                console.info('air data error', body, this.airTempDataUrl());
+                this.console.info('air data error', body, this.airTempDataUrl());
             }
         });  
 
         request(this.waterTempDataUrl(), { json: true }, (err, res, body) => {
-            if (err) { return console.log(err); }
+            if (err) { return this.console.error(err); }
+            this.console.info('water', body)
             if(body.data) {
                 this.waterTempData = body.data;
+                const metaData = body.metadata;
+                if(metaData && metaData.name) {
+                    this.stationName = metaData.name;
+                }
+
                 this.render();
             } else {
-                console.info('water data error', body, this.waterTempDataUrl());
+                this.console.info('water data error', body, this.waterTempDataUrl());
             }
         });  
 
         request(this.windDataUrl(), { json: true }, (err, res, body) => {
-            if (err) { return console.log(err); }
-            // console.info('wind', body)
+            if (err) { return this.console.error(err); }
+            this.console.info('wind', body)
             if(body.data) {
                 this.windData = body.data;
                 this.render();
             } else {
-                console.info('wind data error', body, this.windDataUrl());
+                this.console.info('wind data error', body, this.windDataUrl());
             }
         });  
         
@@ -173,8 +217,8 @@ class Main {
     render() {
 
         const now = new Date();
-        // console.info(now.getHours(), now.getHours() >= sleepHourStart && now.getHours() <= sleepHourEnd);
-        if(now.getHours() >= sleepHourStart && now.getHours() <= sleepHourEnd) {
+
+        if(now.getHours() >= this.sleepHourStart && now.getHours() < this.sleepHourEnd) {
             this.matrix.brightness(100);
         } else {
             this.matrix.brightness(5);
@@ -195,8 +239,17 @@ class Main {
             this.canvasContext.drawImage(this.moonImage, 90, 12, 38, 38);
         }
 
+        //title
+        this.canvasContext.fillStyle = "rgba(0,0,0,0.3)";
+        this.canvasContext.font = 'normal 12px Montserrat';
+        this.canvasContext.fillText(`${this.stationName.split(',')[0]} ${(this.showDebug) ? this.stationId : ''}`, 5, 12);
+
+        this.canvasContext.fillStyle = "rgba(255,255,255,0.7";
+        this.canvasContext.font = 'normal 12px Montserrat';
+        this.canvasContext.fillText(`${this.stationName.split(',')[0]} ${(this.showDebug) ? this.stationId : ''}`, 6, 10);
+
         // draw high/low tides text
-        this.canvasContext.fillStyle = this.lingrad;
+        // this.canvasContext.fillStyle = this.lingrad;
         this.canvasContext.font = 'normal 10px Roboto';
         let totalRows = 0;
         if(this.tideData) {
@@ -204,13 +257,18 @@ class Main {
                 if(totalRows < 4) {
                     const currData = this.tideData[i];
                     const rowDate = new Date(currData.t);
-                    if(rowDate.getTime() > now.getTime()) {
+                    if((rowDate.getTime() + (1000*60*60*4)) > now.getTime()) {
+                        if(rowDate.getHours() <= 12) {
+                            this.canvasContext.fillStyle = "rgb(220,220,255)";
+                        } else {
+                            this.canvasContext.fillStyle = "rgb(255,255,0)";
+                        }
                         this.canvasContext.font = 'normal 8px Roboto';
                         this.canvasContext.fillText(`${currData.type}`, 2, ((totalRows+1)*10+9));
                         this.canvasContext.font = 'normal 10px Roboto';
                         const ampm = (rowDate.getHours() <= 12) ? 'a' : 'p';
                         this.canvasContext.fillText(`${padNumber(formatHours(rowDate.getHours()))}:${padNumber(rowDate.getMinutes())}${ampm}`, 9, ((totalRows+1)*10+10));
-                        const finalLeft = (currData.v < 0) ? 48 : 54;
+                        const finalLeft = (currData.v < 0 || currData.v > 9) ? 48 : 54;
                         this.canvasContext.fillText(`${parseFloat(currData.v).toFixed(2)}ft`, finalLeft, ((totalRows+1)*10+10));
                         totalRows++;
                     }
@@ -240,14 +298,20 @@ class Main {
             const currWindData = this.windData[this.windData.length-1];
             windString = `${currWindData.dr} ${Math.round(currWindData.s*1.15078)}mph`;
             this.canvasContext.fillText(`${windString}`, 45, 62);
+        } else {
+            // date & time
+            this.canvasContext.font = 'normal 7px lato';
+            const dateString = `${padNumber(now.getMonth()+1)}/${padNumber(now.getDate())}`;
+            const timeString = `${padNumber(formatHours(now.getHours()))}:${padNumber(now.getMinutes())}`;
+            this.canvasContext.fillText(`${dateString} ${timeString}`, 45, 62);    
         }
 
         // air temp
-        this.canvasContext.font = 'normal 14px lato';
+        this.canvasContext.font = 'normal 13px lato';
         if(this.airTempData && this.airTempData.length > 0) {
-            const temp = Math.round(this.airTempData[this.airTempData.length-1].v); //   * 9/5 + 32
-            this.canvasContext.fillText(`${temp}°`, 100, 62);
-        }
+            const temp = this.airTempData[this.airTempData.length-1].v; //   * 9/5 + 32
+            this.canvasContext.fillText(`${temp}°`, 95, 62);
+        } 
 
         // draw canvas to matrix
         const imageData = this.canvasContext.getImageData(0, 0, 128, 64).data;
@@ -298,6 +362,7 @@ class Main {
         }
         
     }    
+
 }
 
 const app = new Main();
