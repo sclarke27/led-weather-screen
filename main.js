@@ -32,28 +32,28 @@ class Main {
         this.tideDataUrl = () => { 
             const now = new Date();
             const tomorrow = addDays(now, 1);
-            const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
+            const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=NOS.COOPS.TAC.WL&begin_date=${start}&end_date=${end}&datum=MLLW&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
         };
         this.airTempDataUrl = () => {
             const now = new Date();
             const tomorrow = addDays(now, 1);
-            const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
+            const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=air_temperature&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.waterTempDataUrl = () => {
             const now = new Date();
             const tomorrow = addDays(now, 1);
-            const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
+            const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=water_temperature&application=NOS.COOPS.TAC.PHYSOCEAN&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.windDataUrl = () => {
             const now = new Date();
             const tomorrow = addDays(now, 1);
-            const start = now.getFullYear() + '' + (now.getMonth() + 1) + '' + padNumber(now.getDate());
+            const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
             const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=wind&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
@@ -88,7 +88,7 @@ class Main {
         this.stationIdIndex = 0;
         this.stationId = 0;
 
-        this.showDebug = false;
+        this.showDebug = true;
         this.sleepHourStart = 7;
         this.sleepHourEnd = 20;
         
@@ -159,14 +159,14 @@ class Main {
         })
 
         request(this.tideDataUrl(), { json: true }, (err, res, body) => {
-            this.console.info('tide url', this.tideDataUrl());
+            // console.info('tide url', this.tideDataUrl());
             if (err) { return this.console.error(err); }
-            this.console.info('tide', body);
+            // console.info('tide', body);
             if(body.predictions) {
                 this.tideData = body.predictions;
                 this.render();
             } else {
-                this.console.info('tide data error', body, this.tideDataUrl());
+                console.info('tide data error', body, this.tideDataUrl());
             }
         });  
 
