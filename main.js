@@ -88,9 +88,9 @@ class Main {
         this.stationIdIndex = 0;
         this.stationId = 0;
 
-        this.showDebug = true;
+        this.showDebug = false;
         this.sleepHourStart = 7;
-        this.sleepHourEnd = 20;
+        this.sleepHourEnd = 21;
         
 
 
