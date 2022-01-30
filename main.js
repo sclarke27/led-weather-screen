@@ -33,28 +33,28 @@ class Main {
             const now = new Date();
             const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate());
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=NOS.COOPS.TAC.WL&begin_date=${start}&end_date=${end}&datum=MLLW&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=hilo&format=json`;
         };
         this.airTempDataUrl = () => {
             const now = new Date();
             const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate());
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=air_temperature&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.waterTempDataUrl = () => {
             const now = new Date();
             const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate());
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=water_temperature&application=NOS.COOPS.TAC.PHYSOCEAN&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.windDataUrl = () => {
             const now = new Date();
             const tomorrow = addDays(now, 1);
             const start = now.getFullYear() + '' + padNumber(now.getMonth() + 1) + '' + padNumber(now.getDate());
-            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate()+1);
+            const end = tomorrow.getFullYear() + '' + padNumber(tomorrow.getMonth() + 1) + '' + padNumber(tomorrow.getDate());
             return `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=wind&application=NOS.COOPS.TAC.MET&begin_date=${start}&end_date=${end}&station=${this.stationId}&time_zone=lst_ldt&units=english&interval=h&format=json`;
         }
         this.mainLoopTimeout = null;
